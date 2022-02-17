@@ -1,5 +1,3 @@
-
-
 // function to generate a random numeric value
 var randomNumber = function(min, max) {
     var value = Math.floor(Math.random() * (max - min + 1) + min);
@@ -23,11 +21,14 @@ var fightOrSkip = function() {
         var confirmSkip = window.confirm("Are you sure you'd like to quit?");
 
       // if yes (true), leave fight
-        if (confirmSkip) {
+        if (confirmSkip && playerInfo.money >= 10) {
             window.alert(playerInfo.name + " has decided to skip this fight. Goodbye!");
             // subtract money from playerMoney for skipping
-            playerInfo.playerMoney = playerInfo.money - 10;
+            playerInfo.money = Math.max(0, playerInfo.money - 10);
             return true
+        } else if (confirmSkip) {
+            window.alert("Not enough money to skip!")
+            return fightOrSkip();
         }
     }
     return false
@@ -112,15 +113,30 @@ var fight = function(enemy) {
 var endGame = function(){
     window.alert("The game has now ended. Let's see how you did!")
      // if player is still alive, player wins!
+    // winner
     if (playerInfo.health > 0) {
         window.alert("Great job, you've survived the game! You now have a score of " + playerInfo.money + ".");
+        var highscore = localStorage.getItem("highscore");
+        localStorage.setItem("name", JSON.stringify(playerInfo.name))
+        var name = localStorage.getItem("name")
+
+        // check if no highscore; if no, then assign 0
+        highscore = highscore || 0;
+        //check if new highscore
+        if (playerInfo.money > highscore) {
+            localStorage.setItem("highscore",JSON.stringify(playerInfo.money));
+            highscore = localStorage.getItem("highscore")
+            window.alert(`${name} set a new highscore!: ${highscore}`)
+        }else {
+            window.alert(`${name} did not beat the highscore: ${highscore}`)
+        } 
     } 
     else {
         window.alert("You've lost your robot in battle.");
     }
+
     // ask player if they'd like to play again
     var playAgainConfirm = window.confirm("Would you like to play again?");
-
     if (playAgainConfirm) {
     // restart the game
         startGame();
@@ -155,14 +171,9 @@ var shop = function() {
 
 var getPlayerName = function() {
     var name = "";
-
-    //**************************************** 
-    // ADD LOOP HERE WITH PROMPT AND CONDITION
-    //****************************************
     while(name === "" || name === null) {
         name = prompt("What is your robot's name?");
     }
-
     console.log("Your robot's name is " + name);
     return name;
 };
@@ -171,7 +182,7 @@ var playerInfo = {
     name: getPlayerName(),
     health: 100,
     attack: 10,
-    money: 10,
+    money: 7,
     reset: function() {
         this.health = 100;
         this.money = 10;
@@ -180,8 +191,8 @@ var playerInfo = {
     refillHealth: function() {
         if (this.money >= 7) {
             window.alert("Refilling player's health by 20 for 7 dollars.");
-            this.health += 20;
-            this.money -= 7;
+            Math.min(100, this.health += 20);
+            Math.max(0, this.money -= 7);
         } 
         else {
             window.alert("You don't have enough money!");
@@ -192,7 +203,7 @@ var playerInfo = {
         if (this.money >= 7) {
             window.alert("Upgrading player's attack by 6 for 7 dollars.");
             this.attack += 6;
-            this.money -= 7;
+            Math.max(0,this.money -= 7);
         } 
         else {
             window.alert("You don't have enough money!");
